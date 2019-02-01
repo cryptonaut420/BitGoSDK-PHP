@@ -794,6 +794,26 @@ class BitGoSDK implements BitGoSDKInterface {
         ];
         return $this->__execute('GET');
     }
+    
+    /*
+    * Send a transaction from a wallet
+    */
+    public function sendTransaction($destination, $amount, $wallet_id, $wallet_passphrase, $fee_rate = null, $comment = null)
+    {
+        $this->url = $this->APIEndpoint . '/wallet/'.$wallet_id.'/sendcoins';
+        $this->params = [
+            'address' => $destination,
+            'amount' => $amount,
+            'walletPassphrase' => $wallet_passphrase,
+        ];
+        if($fee_rate !== null){
+            $this->params['feeRate'] = $fee_rate;
+        }
+        if($comment !== null){
+            $this->params['comment'] = $comment;
+        }
+        return $this->__execute('POST');
+    }
 
     private function __execute(string $requestType = 'POST') {
         $ch = curl_init($this->url);
