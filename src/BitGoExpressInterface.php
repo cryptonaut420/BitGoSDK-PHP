@@ -13,7 +13,7 @@
  * @version 2.1
  */
 
-namespace neto737\BitGoSDK;
+namespace cryptonaut420\BitGoSDK;
 
 interface BitGoExpressInterface {
 

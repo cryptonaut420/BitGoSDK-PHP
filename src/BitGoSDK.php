@@ -13,9 +13,9 @@
  * @version 2.1
  */
 
-namespace neto737\BitGoSDK;
+namespace cryptonaut420\BitGoSDK;
 
-use neto737\BitGoSDK\Enum\CurrencyCode;
+use cryptonaut420\BitGoSDK\Enum\CurrencyCode;
 
 class BitGoSDK implements BitGoSDKInterface {
 
