@@ -1,5 +1,5 @@
 {
-    "name": "neto737/bitgosdk-php",
+    "name": "cryptonaut420/bitgosdk-php",
     "description": "A BitGo SDK written in PHP",
     "type": "library",
     "keywords": ["bitgo", "sdk", "bitcoin"],
