@@ -20,9 +20,12 @@ use neto737\BitGoSDK\Enum\CurrencyCode;
 class BitGoSDK implements BitGoSDKInterface {
 
     const BITGO_PRODUCTION_API_ENDPOINT = 'https://www.bitgo.com/api/v2/';
+    const BITGO_PRODUCTION_API_V1_ENDPOINT = 'https://bitgo.com/api/v1/';
     const BITGO_TESTNET_API_ENDPOINT = 'https://test.bitgo.com/api/v2/';
+    const BITGO_TESTNET_API_V1_ENDPOINT = 'https://test.bitgo.com/api/v1/';
 
     private $APIEndpoint = null;
+    private $APIV1Endpoint = null;
     private $AuthAPIEndpoint = null;
     private $url = null;
     private $params = [];
@@ -42,6 +45,7 @@ class BitGoSDK implements BitGoSDKInterface {
         $this->coin = $coin;
         $this->testNet = $testNet;
         $this->APIEndpoint = (!$this->testNet) ? self::BITGO_PRODUCTION_API_ENDPOINT . $this->coin : self::BITGO_TESTNET_API_ENDPOINT . $this->coin;
+        $this->APIV1Endpoint = (!$this->testNet) ? self::BITGO_PRODUCTION_API_V1_ENDPOINT : self::BITGO_TESTNET_API_V1_ENDPOINT;
         $this->AuthAPIEndpoint = (!$this->testNet) ? self::BITGO_PRODUCTION_API_ENDPOINT : self::BITGO_TESTNET_API_ENDPOINT;
 
         if (!in_array($this->coin, $this->allowedCoins)) {
@@ -749,6 +753,24 @@ class BitGoSDK implements BitGoSDKInterface {
         $this->url = $this->APIEndpoint . '/market/latest';
         return $this->__execute('GET');
     }
+    
+    /*
+    * Get data for any transaction
+    */
+    public function getTransaction($txid)
+    {
+        $this->url = $this->APIV1Endpoint . 'tx/'.$txid;
+        return $this->__execute('GET');
+    }
+    
+    /*
+    * Get transactions for any address
+    */
+    public function getAddressTransactions($address, $skip = 0, $limit = 250)
+    {
+        $this->url = $this->APIV1Endpoint . 'address/'.$address.'/tx?skip='.$skip.'&limit='.$limit;
+        return $this->__execute('GET');
+    }
 
     /**
      * Returns the recommended fee rate per kilobyte to confirm a transaction within a target number of blocks.
@@ -781,6 +803,7 @@ class BitGoSDK implements BitGoSDKInterface {
         }
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
             'Authorization: Bearer ' . $this->accessToken
