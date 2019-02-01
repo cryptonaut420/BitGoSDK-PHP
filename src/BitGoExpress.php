@@ -13,9 +13,9 @@
  * @version 2.1
  */
 
-namespace cryptonaut420\BitGoSDK;
+namespace Cryptonaut420\BitGoSDK;
 
-use cryptonaut420\BitGoSDK\Enum\CurrencyCode;
+use Cryptonaut420\BitGoSDK\Enum\CurrencyCode;
 
 class BitGoExpress implements BitGoExpressInterface {
 

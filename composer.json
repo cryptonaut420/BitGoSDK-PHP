@@ -14,7 +14,7 @@
 
     "autoload": {
         "psr-4": {
-            "cryptonaut420\\BitGoSDK\\": "src/"
+            "Cryptonaut420\\BitGoSDK\\": "src/"
         }
     },
 

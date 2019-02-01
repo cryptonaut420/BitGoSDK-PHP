@@ -13,7 +13,7 @@
  * @version 2.1
  */
 
-namespace cryptonaut420\BitGoSDK;
+namespace Cryptonaut420\BitGoSDK;
 
 interface BitGoSDKInterface {
 
