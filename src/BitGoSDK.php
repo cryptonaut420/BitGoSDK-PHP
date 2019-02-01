@@ -771,6 +771,15 @@ class BitGoSDK implements BitGoSDKInterface {
         $this->url = $this->APIV1Endpoint . 'address/'.$address.'/tx?skip='.$skip.'&limit='.$limit;
         return $this->__execute('GET');
     }
+    
+    /*
+    * Load transaction details
+    */
+    public function getAddress($address)
+    {
+        $this->url = $this->APIV1Endpoint . 'address/'.$address;
+        return $this->__execute('GET');
+    }
 
     /**
      * Returns the recommended fee rate per kilobyte to confirm a transaction within a target number of blocks.
