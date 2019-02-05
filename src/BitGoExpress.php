@@ -36,11 +36,15 @@ class BitGoExpress implements BitGoExpressInterface {
      * @param string $coin      Select the coin what you want to use with the BitGOSDK (use CurrencyCode class to select)
      * @throws \Exception
      */
-    public function __construct(string $hostname, int $port, string $coin = CurrencyCode::BITCOIN) {
+    public function __construct(string $hostname, int $port, string $coin = CurrencyCode::BITCOIN, $use_https = false) {
         $this->hostname = $hostname;
         $this->port = $port;
         $this->coin = $coin;
-        $this->APIEndpoint = 'http://' . $this->hostname . ':' . $this->port . '/api/v2/' . $this->coin;
+        $protocol = 'http://';
+        if($use_https){
+			$protocol = 'https://';
+		}
+        $this->APIEndpoint = $protocol . $this->hostname . ':' . $this->port . '/api/v2/' . $this->coin;
 
         if (!in_array($this->coin, $this->allowedCoins)) {
             throw new \Exception('You are trying to use an invalid coin!');
