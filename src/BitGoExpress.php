@@ -3,9 +3,9 @@
 /**
  *  ____  _ _    ____      ____  ____  _  __
  * | __ )(_) |_ / ___| ___/ ___||  _ \| |/ /
- * |  _ \| | __| |  _ / _ \___ \| | | | ' / 
- * | |_) | | |_| |_| | (_) |__) | |_| | . \ 
- * |____/|_|\__|\____|\___/____/|____/|_|\_\                                         
+ * |  _ \| | __| |  _ / _ \___ \| | | | ' /
+ * | |_) | | |_| |_| | (_) |__) | |_| | . \
+ * |____/|_|\__|\____|\___/____/|____/|_|\_\
  *
  * @package BitGoSDK PHP
  * @author  Neto Melo <neto737@live.com>
@@ -17,20 +17,21 @@ namespace Cryptonaut420\BitGoSDK;
 
 use Cryptonaut420\BitGoSDK\Enum\CurrencyCode;
 
-class BitGoExpress implements BitGoExpressInterface {
+class BitGoExpress {
 
     private $APIEndpoint = null;
+    private $AuthAPIEndpoint = null;
     private $url = null;
     private $params = [];
-    private $allowedCoins = ['btc', 'bch', 'btg', 'eth', 'ltc', 'xrp', 'rmg', 'erc', 'omg', 'zrx', 'fun', 'gnt', 'rep', 'bat', 'knc', 'cvc', 'eos', 'qrl', 'nmr', 'pay', 'brd', 'tbtc', 'tbch', 'teth', 'tltc', 'txrp', 'trmg', 'terc'];
-    private $UTXObased = ['btc', 'bch', 'btg', 'ltc', 'rmg', 'tbtc', 'tbch', 'tltc', 'trmg'];
+    private $allowedCoins = ['btc', 'bch', 'bsv', 'btg', 'eth', 'dash', 'ltc', 'xrp', 'zec', 'rmg', 'erc', 'omg', 'zrx', 'fun', 'gnt', 'rep', 'bat', 'knc', 'cvc', 'eos', 'qrl', 'nmr', 'pay', 'brd', 'tbtc', 'tbch', 'teth', 'tdash', 'tltc', 'tzec', 'txrp', 'trmg', 'terc'];
+    private $UTXObased = ['btc', 'bch', 'bsv', 'btg', 'dash', 'ltc', 'rmg', 'zec', 'tbtc', 'tbch', 'tbsv', 'tdash', 'tltc', 'tzec', 'trmg'];
     private $login = false;
     public $accessToken = null;
     public $walletId = null;
 
     /**
      * BitGoExpress Initialization
-     * 
+     *
      * @param string $hostname  Set the hostname of your BitGo Express instance
      * @param int $port         Set the port of your BitGo Express instance
      * @param string $coin      Select the coin what you want to use with the BitGOSDK (use CurrencyCode class to select)
@@ -40,10 +41,13 @@ class BitGoExpress implements BitGoExpressInterface {
         $this->hostname = $hostname;
         $this->port = $port;
         $this->coin = $coin;
+
         $protocol = 'http://';
         if($use_https){
-			$protocol = 'https://';
-		}
+	       $protocol = 'https://';
+	      }
+
+        $this->AuthAPIEndpoint = $protocol . $this->hostname . ':' . $this->port . '/api/v2';
         $this->APIEndpoint = $protocol . $this->hostname . ':' . $this->port . '/api/v2/' . $this->coin;
 
         if (!in_array($this->coin, $this->allowedCoins)) {
@@ -53,7 +57,7 @@ class BitGoExpress implements BitGoExpressInterface {
 
     /**
      * Get a token for first-party access to the BitGo API. First-party access is only intended for users accessing their own BitGo accounts.
-     * 
+     *
      * @param string $email     The user’s email address
      * @param string $password  The user’s password
      * @param string $otp       The 2nd-factor-authentication token
@@ -61,7 +65,7 @@ class BitGoExpress implements BitGoExpressInterface {
      * @return array
      */
     public function login(string $email, string $password, string $otp, bool $extensible = null) {
-        $this->url = 'http://' . $this->hostname . ':' . $this->port . '/api/v2/user/login';
+        $this->url = $this->AuthAPIEndpoint . '/user/login';
         $this->params = [
             'email' => $email,
             'password' => $password,
@@ -69,12 +73,22 @@ class BitGoExpress implements BitGoExpressInterface {
             'extensible' => $extensible
         ];
         $this->login = true;
-        return $this->__execute('POST');
+        return $this->__execute();
+    }
+
+    /**
+     * Ping bitgo express to ensure that it is still running. Unlike /ping, this does not try connecting to bitgo.com.
+     *
+     * @return array
+     */
+    public function ping() {
+        $this->url = $this->AuthAPIEndpoint . '/ping';
+        return $this->__execute('GET');
     }
 
     /**
      * This API call creates a new wallet.
-     * 
+     *
      * @param string $label                         Human-readable name for the wallet.
      * @param string $passphrase                    Passphrase to decrypt the wallet’s private key.
      * @param string $userKey                       Optional xpub to be used as the user key.
@@ -99,13 +113,13 @@ class BitGoExpress implements BitGoExpressInterface {
             'gasPrice' => $this->coin === CurrencyCode::ETHEREUM ? $gasPrice : 0,
             'passcodeEncryptionCode' => $passcodeEncryptionCode
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * This API creates a new wallet for the user.
      * The keys to use with the new wallet (passed in the ‘keys’ parameter) must be registered with BitGo prior to using this API.
-     * 
+     *
      * @param string $label                         Human-readable name for the wallet.
      * @param int $m                                Number of signatures required for wallet (must be 2).
      * @param int $n                                Number of total signers on wallet (must be 3).
@@ -126,12 +140,12 @@ class BitGoExpress implements BitGoExpressInterface {
             'isCold' => $isCold,
             'disableTransactionNotifications' => $disableTransactionNotifications
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * This API call allows you to create and send cryptocurrency to a destination address.
-     * 
+     *
      * @param string $address                   Recipient address
      * @param int $amount                       Amount to be sent to the recipient
      * @param string $walletPassphrase          The passphrase to be used to decrypt the user key on this wallet
@@ -178,13 +192,13 @@ class BitGoExpress implements BitGoExpressInterface {
             'lastLedgerSequence' => $this->coin === CurrencyCode::RIPPLE ? $lastLedgerSequence : null,
             'ledgerSequenceDelta' => $this->coin === CurrencyCode::RIPPLE ? $ledgerSequenceDelta : null
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
-     * This API call allows you to create a transaction and send to multiple addresses. 
+     * This API call allows you to create a transaction and send to multiple addresses.
      * This may be useful if you schedule outgoing transactions in bulk, as you will be able to process multiple recipients and lower the aggregate amount of blockchain fees paid.
-     * 
+     *
      * @param array $recipients                 Array of recipient objects and the amount to send to each e.g. [{address: ‘38BKDNZbPcLogvVbcx2ekJ9E6Vv94DqDqw’, amount: 1500}, …]
      * @param string $walletPassphrase          The passphrase to be used to decrypt the user key on this wallet
      * @param string $prv                       The private key in string form if the walletPassphrase is not available
@@ -229,12 +243,12 @@ class BitGoExpress implements BitGoExpressInterface {
             'lastLedgerSequence' => $this->coin === CurrencyCode::RIPPLE ? $lastLedgerSequence : null,
             'ledgerSequenceDelta' => $this->coin === CurrencyCode::RIPPLE ? $ledgerSequenceDelta : null
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * This SDK call will consolidate the unspents that match the parameters, and consolidate them into the number specified by 'numUnspentsToMake'.
-     * 
+     *
      * @param string $walletPassphrase          Passphrase to decrypt the wallet’s private key.
      * @param int $numUnspentsToMake            Number of outputs created by the consolidation transaction (Defaults to 1)
      * @param int $limit                        Number of unspents to select (Defaults to 25, Max is 200)
@@ -263,12 +277,12 @@ class BitGoExpress implements BitGoExpressInterface {
             'minConfirms' => $minConfirms,
             'enforceMinConfirmsForChange' => $enforceMinConfirmsForChange
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * This SDK call will fanout the unspents currently in the wallet that match the parameters, and use them as inputs to create more unspents.
-     * 
+     *
      * @param string $walletPassphrase          Passphrase to decrypt the wallet’s private key.
      * @param string $xprv                      The private key in string form if the walletPassphrase is not available
      * @param int $maxNumInputsToUse            Number of unspents you want to use in the fanout transaction (Default 20, Max 80)
@@ -299,12 +313,12 @@ class BitGoExpress implements BitGoExpressInterface {
             'feeRate' => $feeRate,
             'feeTxConfirmTarget' => $this->coin === CurrencyCode::BITCOIN ? $feeTxConfirmTarget : null
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * his SDK call attempts to move all of the funds of the wallet into the address provided.
-     * 
+     *
      * @param string $address               The address to send all the funds in the wallet to.
      * @param string $walletPassphrase      Passphrase to decrypt the wallet’s private key.
      * @param string $xprv                  The private key in string form if the walletPassphrase is not available
@@ -331,12 +345,12 @@ class BitGoExpress implements BitGoExpressInterface {
             'lastLedgerSequence' => $this->coin === CurrencyCode::RIPPLE ? $lastLedgerSequence : null,
             'ledgerSequenceDelta' => $this->coin === CurrencyCode::RIPPLE ? $ledgerSequenceDelta : null
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * Create a transaction with the specified parameters. This builds a transaction object, but does not sign or send it.
-     * 
+     *
      * @param array $recipients                 List of recipients in array
      * @param int $numBlocks                    Estimates the approximate fee per kilobyte necessary for a transaction confirmation within 'numBlocks' blocks.
      * @param int $feeRate                      Fee rate in satoshis/litoshis/atoms per kilobyte.
@@ -375,7 +389,7 @@ class BitGoExpress implements BitGoExpressInterface {
     /**
      * Sign the given transaction with the specified keychain. All signing is done locally and can be performed offline.
      * Signing can happen two ways: with a prv argument representing the private key, or with keychain and walletPassphrase arguments (for signing with an encrypted private key).
-     * 
+     *
      * @param object $txPrebuild            The transaction description object, output from 'Build Transaction’
      * @param string $prv                   The user private key
      * @param string $coldDerivationSeed    The seed used to derive the signing key
@@ -397,7 +411,7 @@ class BitGoExpress implements BitGoExpressInterface {
 
     /**
      * Submit a half-signed transaction.
-     * 
+     *
      * @param object $halfSigned    The half-signed info returned from 'Sign Transaction’
      * @param string $otp           The current 2FA code
      * @param string $txHex         The half-signed, serialized transaction hex (alternative to halfSigned)
@@ -412,22 +426,22 @@ class BitGoExpress implements BitGoExpressInterface {
             'txHex' => $txHex,
             'comment' => $comment
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * Local client-side function to create a new keychain.
-     * 
+     *
      * @return array
      */
     public function createKeychain() {
         $this->url = $this->APIEndpoint . '/keychain/local';
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * Sharing a wallet involves giving another user permission to use the wallet through BitGo.
-     * 
+     *
      * @param string $email             Email of the user to share the wallet with
      * @param string $permissions       Comma-separated list of permissions, e.g. view,spend,admin
      * @param string $walletPassphrase  Passphrase on the wallet being shared
@@ -444,12 +458,12 @@ class BitGoExpress implements BitGoExpressInterface {
             'skipKeychain' => $skipKeychain,
             'disableEmail' => $disableEmail
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * Client-side operation to accept a wallet share.
-     * 
+     *
      * @param string $walletShareId         The incoming wallet share ID to accept
      * @param string $newWalletPassphrase   The passphrase to set on the wallet, for use during future spends
      * @param string $userPassword          The user’s password to decrypt the shared private key
@@ -464,12 +478,12 @@ class BitGoExpress implements BitGoExpressInterface {
             'userPassword' => $userPassword,
             'overrideEncryptedPrv' => $overrideEncryptedPrv
         ];
-        return $this->__execute('POST');
+        return $this->__execute();
     }
 
     /**
      * Update the state of a pending approval to either ‘approved’ or 'rejected'. Pending approvals are designed to be managed through our web UI.
-     * 
+     *
      * @param string $pendingApprovalId Pending approval id.
      * @param string $state             Approval
      * @param string $otp               One Time Password
@@ -482,6 +496,52 @@ class BitGoExpress implements BitGoExpressInterface {
             'otp' => $otp
         ];
         return $this->__execute('PUT');
+    }
+
+    /**
+     * Symmetrically encrypt an arbitrary message with provided password
+     *
+     * @param string $input     Plaintext message which should be encrypted
+     * @param string $password  Password which should be used to encrypt message
+     * @return string
+     */
+    public function encrypt(string $input, string $password) {
+        $this->url = $this->AuthAPIEndpoint . '/encrypt';
+        $this->params = [
+            'input' => $input,
+            'password' => $password
+        ];
+        return $this->__execute();
+    }
+
+    /**
+     * Decrypt a ciphertext generated by encrypt route with provided password
+     *
+     * @param string $input     Ciphertext to decrypt
+     * @param string $password  Key which is used for decryption
+     * @return string
+     */
+    public function decrypt(string $input, string $password) {
+        $this->url = $this->AuthAPIEndpoint . '/decrypt';
+        $this->params = [
+            'input' => $input,
+            'password' => $password
+        ];
+        return $this->__execute();
+    }
+
+    /**
+     * Verify address for a given coin
+     *
+     * @param string $address   Address which should be verified for correct format
+     * @return array
+     */
+    public function verifyAddress(string $address) {
+        $this->url = $this->APIEndpoint . '/verifyaddress';
+        $this->params = [
+            'address' => $address
+        ];
+        return $this->__execute();
     }
 
     private function __execute(string $requestType = 'POST', bool $array = true) {
@@ -504,6 +564,9 @@ class BitGoExpress implements BitGoExpressInterface {
             ]);
         }
         curl_setopt($ch, CURLOPT_CAINFO, dirname(__FILE__) . '/cacert.pem');
+        if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
+            curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        }
 
         $response = curl_exec($ch);
         curl_close($ch);
